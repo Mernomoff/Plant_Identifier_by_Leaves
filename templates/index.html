@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Идентификация Растений</title>
+</head>
+<body>
+    <h1>Загрузите изображение для идентификации растения</h1>
+
+    <!-- Форма для загрузки изображений -->
+    <input type="file" id="inputfile" accept="image/*">
+    <button id="uploadButton">Загрузить</button>
+
+    <div class="result">
+        <p id="prediction"></p>
+    </div>
+
+    <script>
+        const inputFile = document.querySelector("#inputfile");
+        const resultText = document.querySelector("#prediction");
+        const uploadButton = document.querySelector("#uploadButton");
+
+        // Обработчик события для загрузки изображения
+        uploadButton.addEventListener("click", async () => {
+            const files = inputFile.files;
+            if (files.length === 0) {
+                resultText.textContent = "Пожалуйста, выберите файл.";
+                return;
+            }
+            const formData = new FormData();
+            formData.append("file", files[0]);  // Добавление загруженного файла в FormData
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/predict", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Ошибка предсказания!");
+                }
+
+                const data = await response.json();
+                resultText.textContent = `Растение: ${data.predicted_class}, уверенность: ${(data.confidence * 100).toFixed(2)}%`;
+
+            } catch (err) {
+                console.error(err);
+                resultText.textContent = "Ошибка при распознавании растения.";
+            }
+        });
+    </script>
+</body>
+</html>
